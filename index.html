@@ -1,0 +1,560 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090909">
+<title>S2K Photo Gallery</title>
+
+<style>
+:root {
+  --bg:#090909; --panel:#141414; --gold:#d6b36a;
+  --text:#f5f1e8; --muted:#99958c; --border:#302a20;
+}
+* { box-sizing:border-box }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,sans-serif;
+}
+button,input,select { font:inherit }
+button { cursor:pointer }
+button:focus-visible,input:focus-visible,select:focus-visible {
+  outline:2px solid var(--gold); outline-offset:2px;
+}
+header {
+  position:sticky;top:0;z-index:5;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:15px 5%;background:#090909ee;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(12px);
+}
+.logo {font-size:25px;font-weight:900;letter-spacing:-1px}
+.logo span,h1 span {color:var(--gold)}
+.wrap {max-width:1050px;margin:auto;padding:25px 18px 50px}
+.hero {padding:24px 0}
+.eyebrow {font-size:10px;letter-spacing:3px;color:var(--gold);font-weight:800}
+h1 {font-size:clamp(28px,6vw,43px);margin:8px 0}
+.muted {color:var(--muted);font-size:13px;line-height:1.7}
+.panel {
+  background:linear-gradient(130deg,#1b1710,#121212);
+  border:1px solid var(--border);border-radius:17px;padding:18px;
+}
+.toolbar {display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+input,select {
+  min-width:0;background:#0d0d0d;color:var(--text);
+  border:1px solid var(--border);border-radius:10px;padding:12px;
+}
+input[type="search"] {flex:1;min-width:150px}
+input[type="text"],select {width:100%}
+.btn {
+  border:1px solid var(--border);border-radius:10px;
+  background:#1a1a1a;color:var(--text);padding:11px 14px;
+}
+.btn.gold {
+  background:linear-gradient(135deg,#f1d99c,#b38b3e);
+  color:#181209;border-color:var(--gold);font-weight:800;
+}
+.btn:hover {border-color:var(--gold)}
+.btn:disabled {opacity:.5;cursor:wait}
+.fields {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}
+.fields label {display:grid;gap:7px;font-size:12px;color:var(--muted)}
+.stats {display:flex;gap:18px;flex-wrap:wrap;margin:20px 0;color:var(--muted);font-size:12px}
+.stats b {color:var(--gold);font-size:16px}
+.tabs,.chips {display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 15px}
+.tab,.chip {
+  background:transparent;color:var(--muted);
+  border:1px solid var(--border);border-radius:30px;padding:9px 13px;
+}
+.tab.active,.chip.active {color:var(--gold);border-color:var(--gold);background:#211b10}
+.grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.card {min-width:0;overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.photo {
+  position:relative;display:block;width:100%;padding:0;border:0;
+  background:#111;aspect-ratio:1/1.12;overflow:hidden;
+}
+.photo img {width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.card:hover .photo img {transform:scale(1.035)}
+.heart {
+  position:absolute;right:8px;top:8px;width:35px;height:35px;
+  border:1px solid #ffffff44;border-radius:50%;background:#0009;
+  color:white;font-size:19px;
+}
+.heart.on {color:#ff7489}
+.caption {padding:10px}
+.caption strong {font-size:12px;display:block;overflow-wrap:anywhere}
+.caption p {font-size:10px;color:var(--muted);margin:5px 0;overflow-wrap:anywhere}
+.actions {display:flex;gap:6px;margin-top:8px}
+.actions .btn {flex:1;padding:8px 4px;font-size:11px}
+.empty {padding:55px 10px;text-align:center;border:1px dashed var(--border);border-radius:15px}
+.notice {margin:15px 0;padding:12px;border:1px solid var(--border);border-radius:10px;color:var(--gold);font-size:12px;overflow-wrap:anywhere}
+footer {padding:25px 0;border-top:1px solid var(--border);margin-top:35px;color:var(--muted);font-size:10px;letter-spacing:2px;display:flex;justify-content:space-between;gap:10px}
+.modal {
+  display:none;position:fixed;inset:0;z-index:20;
+  background:#000e;align-items:center;justify-content:center;padding:16px;
+}
+.modal.show {display:flex}
+.viewer {width:min(800px,100%);max-height:94dvh;overflow:auto;background:#141414;border:1px solid var(--border);border-radius:15px}
+.viewer img {display:block;width:100%;max-height:68dvh;object-fit:contain;background:#050505}
+.viewer-info {padding:15px}
+.viewer-top {display:flex;justify-content:space-between;gap:10px;align-items:center}
+.viewer-top h2 {font-size:16px;overflow-wrap:anywhere}
+.close {background:#252525;color:white;border:1px solid #555;border-radius:50%;width:40px;height:40px}
+@media(max-width:600px) {
+  header {padding:13px 17px}
+  .wrap {padding:17px 12px 35px}
+  .fields {grid-template-columns:1fr}
+  .grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .caption {padding:8px}
+  .actions {flex-wrap:wrap}
+  .actions .btn {font-size:10px}
+  footer {font-size:8px;letter-spacing:1px}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="logo">S2K<span>.</span></div>
+  <button class="btn" id="exportData">Export Info</button>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">YOUR PERSONAL ARCHIVE</p>
+    <h1>Sabbir <span>Gallery</span></h1>
+    <p class="muted">Your photos. Your memories. Your device.</p>
+    <div class="stats">
+      <span><b id="total">0</b> Photos</span>
+      <span><b id="favs">0</b> Favorites</span>
+      <span><b id="albums">0</b> Albums</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="eyebrow">ADD TO YOUR COLLECTION</p>
+    <h2 style="margin:6px 0">Save a memory.</h2>
+    <p class="muted">JPG, PNG, WEBP বা GIF · প্রতি ছবি সর্বোচ্চ 15 MB</p>
+
+    <div class="fields">
+      <label>Photo title
+        <input id="title" type="text" maxlength="100" placeholder="ছবির নাম">
+      </label>
+      <label>Album
+        <input id="album" type="text" maxlength="60" value="My Photos">
+      </label>
+      <label>Category
+        <select id="category">
+          <option>Personal</option><option>Friends</option>
+          <option>Family</option><option>Travel</option>
+          <option>Gaming</option><option>Other</option>
+        </select>
+      </label>
+      <label>Choose photos
+        <input id="files" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+      </label>
+    </div>
+    <div class="toolbar">
+      <button class="btn gold" id="add">＋ Add Photos</button>
+      <button class="btn" id="backup">Download All Photos</button>
+      <button class="btn" id="restore">Import Backup Info</button>
+      <input id="backupFile" type="file" accept="application/json,.json" hidden>
+    </div>
+    <p class="muted">ছবি তোমার ব্রাউজারেই রাখা হবে। নিয়মিত Backup রাখো।</p>
+  </section>
+
+  <div id="notice" class="notice" role="status" hidden></div>
+
+  <section>
+    <div class="toolbar" style="margin-top:28px">
+      <input type="search" id="search" placeholder="🔎 Search photos or albums...">
+      <select id="filter">
+        <option value="All">All Categories</option>
+        <option>Personal</option><option>Friends</option>
+        <option>Family</option><option>Travel</option>
+        <option>Gaming</option><option>Other</option>
+      </select>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="all">▦ Gallery</button>
+      <button class="tab" data-tab="favorites">♥ Favorites</button>
+      <button class="tab" data-tab="albums">▤ Albums</button>
+    </nav>
+    <div id="chips" class="chips"></div>
+    <div id="gallery" class="grid"></div>
+  </section>
+
+  <footer><span>S2K GALLERY</span><span>PRIVATE ON THIS DEVICE ✦</span></footer>
+</main>
+
+<div id="modal" class="modal">
+  <div class="viewer">
+    <div style="display:flex;justify-content:flex-end;padding:8px">
+      <button class="close" id="close" aria-label="Close">✕</button>
+    </div>
+    <img id="bigImage" alt="">
+    <div class="viewer-info">
+      <div class="viewer-top">
+        <div><h2 id="bigTitle"></h2><p class="muted" id="bigMeta"></p></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="bigFavorite">♥ Favorite</button>
+        <button class="btn" id="bigEdit">Edit Details</button>
+        <button class="btn" id="bigDownload">Download</button>
+        <button class="btn" id="bigDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const DB_NAME = "S2KGalleryDB";
+const STORE = "photos";
+let db;
+let photos = [];
+let currentTab = "all";
+let albumChip = "All Albums";
+let selectedId = null;
+let objectUrls = [];
+
+const $ = id => document.getElementById(id);
+const gallery = $("gallery");
+
+function say(message) {
+  const n = $("notice");
+  n.textContent = message;
+  n.hidden = false;
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const d = request.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        d.createObjectStore(STORE, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function transaction(mode, action) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, mode);
+    const store = tx.objectStore(STORE);
+    let result;
+    try { result = action(store); }
+    catch (e) { reject(e); return; }
+    tx.oncomplete = () => resolve(result?.result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+async function getAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const request = tx.objectStore(STORE).getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function releaseUrls() {
+  objectUrls.forEach(URL.revokeObjectURL);
+  objectUrls = [];
+}
+
+async function refresh() {
+  photos = (await getAll()).sort((a,b) => b.createdAt - a.createdAt);
+  render();
+}
+
+function makeButton(text, className, callback) {
+  const b = document.createElement("button");
+  b.className = className;
+  b.textContent = text;
+  b.type = "button";
+  b.addEventListener("click", callback);
+  return b;
+}
+
+function render() {
+  releaseUrls();
+
+  $("total").textContent = photos.length;
+  $("favs").textContent = photos.filter(p => p.favorite).length;
+  $("albums").textContent = new Set(photos.map(p => p.album)).size;
+
+  const chips = $("chips");
+  chips.replaceChildren();
+
+  if (currentTab === "albums") {
+    ["All Albums", ...new Set(photos.map(p => p.album))].forEach(name => {
+      const b = makeButton(name, "chip" + (albumChip === name ? " active" : ""), () => {
+        albumChip = name;
+        render();
+      });
+      chips.append(b);
+    });
+  }
+
+  const query = $("search").value.trim().toLowerCase();
+  const category = $("filter").value;
+
+  const filtered = photos.filter(p => {
+    if (currentTab === "favorites" && !p.favorite) return false;
+    if (currentTab === "albums" && albumChip !== "All Albums" && p.album !== albumChip) return false;
+    if (category !== "All" && p.category !== category) return false;
+    return (p.title + " " + p.album + " " + p.category).toLowerCase().includes(query);
+  });
+
+  gallery.replaceChildren();
+
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.style.gridColumn = "1 / -1";
+    const h = document.createElement("h3");
+    h.textContent = photos.length ? "কোনো ছবি পাওয়া যায়নি" : "তোমার Gallery খালি";
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "Add Photos চাপ দিয়ে প্রথম ছবি যোগ করো।";
+    empty.append(h,p);
+    gallery.append(empty);
+    return;
+  }
+
+  for (const p of filtered) {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const open = document.createElement("button");
+    open.className = "photo";
+    open.setAttribute("aria-label", "Open photo");
+
+    const img = document.createElement("img");
+    img.alt = p.title;
+    img.loading = "lazy";
+    img.src = URL.createObjectURL(p.blob);
+    objectUrls.push(img.src);
+    open.append(img);
+    open.addEventListener("click", () => showPhoto(p.id));
+
+    const heart = makeButton(p.favorite ? "♥" : "♡", "heart" + (p.favorite ? " on" : ""), () => toggleFavorite(p.id));
+    heart.style.position = "absolute";
+    open.style.position = "relative";
+    open.append(heart);
+
+    const caption = document.createElement("div");
+    caption.className = "caption";
+
+    const title = document.createElement("strong");
+    title.textContent = p.title || "Untitled";
+
+    const meta = document.createElement("p");
+    meta.textContent = p.album + " · " + p.category;
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    actions.append(
+      makeButton("Download", "btn", () => downloadOne(p)),
+      makeButton("Delete", "btn", () => deletePhoto(p.id))
+    );
+
+    caption.append(title, meta, actions);
+    card.append(open, caption);
+    gallery.append(card);
+  }
+}
+
+async function addPhotos() {
+  const files = Array.from($("files").files || []);
+  if (!files.length) return say("আগে ছবি নির্বাচন করো।");
+
+  const valid = files.filter(f =>
+    ["image/jpeg","image/png","image/webp","image/gif"].includes(f.type) &&
+    f.size <= 15 * 1024 * 1024
+  );
+
+  if (valid.length !== files.length) {
+    say("কিছু ফাইল বাদ দেওয়া হয়েছে: শুধু JPG, PNG, WEBP, GIF; সর্বোচ্চ 15 MB।");
+  }
+
+  if (!valid.length) return;
+
+  $("add").disabled = true;
+  let added = 0;
+
+  try {
+    for (const file of valid) {
+      const record = {
+        id: crypto.randomUUID(),
+        title: ($("title").value.trim() || file.name.replace(/\.[^.]+$/, "")).slice(0,100),
+        album: ($("album").value.trim() || "My Photos").slice(0,60),
+        category: $("category").value,
+        favorite: false,
+        createdAt: Date.now(),
+        blob: file
+      };
+      await transaction("readwrite", store => store.put(record));
+      added++;
+    }
+    $("files").value = "";
+    $("title").value = "";
+    say(`${added}টি ছবি যোগ হয়েছে।`);
+    await refresh();
+  } catch (e) {
+    say("Storage পূর্ণ হতে পারে। কিছু ছবি সরাও বা Backup নাও।");
+  } finally {
+    $("add").disabled = false;
+  }
+}
+
+async function toggleFavorite(id) {
+  const p = photos.find(x => x.id === id);
+  if (!p) return;
+  p.favorite = !p.favorite;
+  await transaction("readwrite", s => s.put(p));
+  await refresh();
+  if ($("modal").classList.contains("show")) showPhoto(id);
+}
+
+async function deletePhoto(id) {
+  const p = photos.find(x => x.id === id);
+  if (!p || !confirm(`"${p.title}" ছবিটি স্থায়ীভাবে Delete করবে?`)) return;
+
+  await transaction("readwrite", s => s.delete(id));
+  $("modal").classList.remove("show");
+  await refresh();
+  say("ছবিটি এই ব্রাউজার থেকে মুছে ফেলা হয়েছে।");
+}
+
+async function editPhoto(id) {
+  const p = photos.find(x => x.id === id);
+  if (!p) return;
+
+  const title = prompt("ছবির নাম:", p.title);
+  if (title === null) return;
+  const album = prompt("Album-এর নাম:", p.album);
+  if (album === null) return;
+
+  p.title = title.trim().slice(0,100) || "Untitled";
+  p.album = album.trim().slice(0,60) || "My Photos";
+
+  await transaction("readwrite", s => s.put(p));
+  await refresh();
+  showPhoto(id);
+}
+
+function downloadOne(p) {
+  const url = URL.createObjectURL(p.blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (p.title || "S2K-photo").replace(/[\\/:*?"<>|]/g,"_") + "." +
+    ((p.blob.type.split("/")[1] || "jpg").replace("jpeg","jpg"));
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+async function showPhoto(id) {
+  const p = photos.find(x => x.id === id);
+  if (!p) return;
+
+  selectedId = id;
+  $("bigImage").src = URL.createObjectURL(p.blob);
+  objectUrls.push($("bigImage").src);
+  $("bigTitle").textContent = p.title;
+  $("bigMeta").textContent = p.album + " · " + p.category;
+  $("bigFavorite").textContent = p.favorite ? "♥ Remove Favorite" : "♡ Favorite";
+  $("modal").classList.add("show");
+}
+
+$("close").addEventListener("click", () => {
+  $("modal").classList.remove("show");
+  $("bigImage").removeAttribute("src");
+});
+$("modal").addEventListener("click", e => {
+  if (e.target === $("modal")) {
+    $("modal").classList.remove("show");
+    $("bigImage").removeAttribute("src");
+  }
+});
+$("bigFavorite").addEventListener("click", () => selectedId && toggleFavorite(selectedId));
+$("bigEdit").addEventListener("click", () => selectedId && editPhoto(selectedId));
+$("bigDownload").addEventListener("click", () => {
+  const p = photos.find(x => x.id === selectedId);
+  if (p) downloadOne(p);
+});
+$("bigDelete").addEventListener("click", () => selectedId && deletePhoto(selectedId));
+
+document.querySelectorAll("[data-tab]").forEach(b => {
+  b.addEventListener("click", () => {
+    currentTab = b.dataset.tab;
+    albumChip = "All Albums";
+    document.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("active", x === b));
+    render();
+  });
+});
+
+$("add").addEventListener("click", addPhotos);
+$("search").addEventListener("input", render);
+$("filter").addEventListener("change", render);
+
+$("exportData").addEventListener("click", () => {
+  const data = photos.map(({id,title,album,category,favorite,createdAt}) =>
+    ({id,title,album,category,favorite,createdAt})
+  );
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "S2K-gallery-info.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  say("ছবির তথ্য Export হয়েছে। এটি ছবির Backup নয়।");
+});
+
+$("backup").addEventListener("click", async () => {
+  if (!photos.length) return say("Backup করার মতো ছবি নেই।");
+  if (!confirm(`${photos.length}টি ছবি আলাদাভাবে Download করবে?`)) return;
+  for (const p of photos) {
+    downloadOne(p);
+    await new Promise(r => setTimeout(r, 350));
+  }
+  say("Backup Download শুরু হয়েছে। ব্রাউজার একাধিক Download-এর অনুমতি চাইতে পারে।");
+});
+
+$("restore").addEventListener("click", () => $("backupFile").click());
+$("backupFile").addEventListener("change", async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data) || !data.every(x =>
+      typeof x.title === "string" && typeof x.album === "string" &&
+      typeof x.category === "string"
+    )) throw new Error("Invalid backup");
+
+    say("এই ফাইলে ছবির তথ্য আছে, ছবি নেই। ছবি পুনরুদ্ধার করতে মূল ছবিগুলো আবার Upload করো।");
+  } catch {
+    say("Backup Info ফাইলটি সঠিক নয়।");
+  }
+  e.target.value = "";
+});
+
+(async function init() {
+  try {
+    db = await openDB();
+    await refresh();
+  } catch (e) {
+    say("এই ব্রাউজারে Storage চালু করা যায়নি। স্বাভাবিক ব্রাউজার মোডে চেষ্টা করো।");
+  }
+})();
+</script>
+</body>
+</html>
